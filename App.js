@@ -30,6 +30,8 @@ import {
 import WalletConnect from '@walletconnect/client';
 // import {WalletConnector} from 'walletconnect';
 import Camera, {RNCamera} from 'react-native-camera';
+import * as ethers from 'ethers';
+
 const Section = ({children, title}): Node => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
@@ -59,16 +61,22 @@ const Section = ({children, title}): Node => {
 const App: () => Node = () => {
   const [opened, setOpened] = useState(false);
   const [qrFound, setQrFound] = useState(false);
+  const [connector, setConnector] = useState(null);
+  const [wallet, setWallet] = useState(null);
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+  useEffect(() => {
+    const wallet = new ethers.Wallet.createRandom();
+    console.log('wallet', wallet);
+    setWallet(wallet);
+  }, []);
   const scan = () => {
     setOpened(true);
     console.log('scanning', opened);
   };
-  let connector = null;
   const onBarCodeRead = async e => {
     console.log('onBarCodeRead', e);
     setOpened(false);
@@ -79,7 +87,7 @@ const App: () => Node = () => {
     // const {sessionId, sharedKey} = data;
 
     try {
-      connector = new WalletConnect({
+      let connectorInst = new WalletConnect({
         // Required
         uri: e.data,
         // Required
@@ -90,7 +98,15 @@ const App: () => Node = () => {
           name: 'WalletConnect',
         },
       });
-      console.log('connector', connector);
+      setConnector(connectorInst);
+      console.log('connectorInst', connectorInst);
+      if (!connectorInst.connected) {
+        console.log('connectorInst.connected', connectorInst.connected);
+        await connectorInst.createSession();
+        console.log('sess');
+      }
+      console.log('connector', connectorInst);
+      // subToEvents();
       // const walletConnector = new WalletConnector(
       //   'https://walletconnect.matic.network',
       //   {
@@ -101,13 +117,13 @@ const App: () => Node = () => {
       // );
 
       // sending session data
-      await connector.sendSessionStatus({
-        fcmToken: '1234', // TODO use real fcm token
-        walletWebhook: 'https://walletconnect.matic.network/notification/new',
-        data: {
-          address: '0x123', // TODO use real address :)
-        },
-      });
+      // await connector.sendSessionStatus({
+      //   fcmToken: '1234', // TODO use real fcm token
+      //   walletWebhook: 'https://walletconnect.matic.network/notification/new',
+      //   data: {
+      //     address: '0x123', // TODO use real address :)
+      //   },
+      // });
 
       // success alert
       Alert.alert('Connected', 'Successfully connected with app');
@@ -118,34 +134,72 @@ const App: () => Node = () => {
       Alert.alert('Failed', 'Connection with app failed. Please try again.');
     }
   };
+  // const subToEvents = () => {
   useEffect(() => {
-    if (!connector) return;
+    if (!connector || !wallet) return;
+    console.log('subToEvents');
     connector.on('session_request', (error, payload) => {
+      console.log('EVENT', 'session_request');
+
       if (error) {
         throw error;
       }
-      console.log('session_request', payload);
-
-      // Handle Session Request
-
-      /* payload:
-        {
-          id: 1,
-          jsonrpc: '2.0'.
-          method: 'session_request',
-          params: [{
-            peerId: '15d8b6a3-15bd-493e-9358-111e3a4e6ee4',
-            peerMeta: {
-              name: "WalletConnect Example",
-              description: "Try out WalletConnect v1.0",
-              icons: ["https://example.walletconnect.org/favicon.ico"],
-              url: "https://example.walletconnect.org"
-            }
-          }]
-        }
-        */
+      console.log('SESSION_REQUEST', payload.params);
+      const {peerMeta} = payload.params[0];
+      console.log('PEER_META', peerMeta);
+      connector.approveSession({chainId: 3, accounts: [wallet.address]});
     });
-  }, [connector]);
+    connector.on('session_update', error => {
+      console.log('EVENT', 'session_update');
+
+      if (error) {
+        throw error;
+      }
+    });
+
+    connector.on('call_request', async (error, payload) => {
+      // tslint:disable-next-line
+      console.log('EVENT', 'call_request', 'method', payload.method);
+      console.log('EVENT', 'call_request', 'params', payload.params);
+
+      if (error) {
+        throw error;
+      }
+
+      // await getAppConfig().rpcEngine.router(payload, this.state, this.bindedSetState);
+      let data = payload.params[0];
+      if (data && data.from) {
+        delete data.from;
+      }
+      data.gasLimit = data.gas;
+      delete data.gas;
+      const result = await wallet.signTransaction(data);
+      connector.approveRequest({
+        id: payload.id,
+        result,
+      });
+    });
+
+    connector.on('connect', (error, payload) => {
+      console.log('EVENT', 'connect');
+
+      if (error) {
+        throw error;
+      }
+
+      // this.setState({ connected: true });
+    });
+
+    connector.on('disconnect', (error, payload) => {
+      console.log('EVENT', 'disconnect');
+
+      if (error) {
+        throw error;
+      }
+
+      // this.resetApp();
+    });
+  }, [connector, wallet]);
   console.log('hahahah', opened);
   let mainView = null;
   if (opened && !qrFound) {
