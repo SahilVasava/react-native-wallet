@@ -2389,6 +2389,11 @@
   "resolved" "https://registry.npmjs.org/babel-plugin-syntax-trailing-function-commas/-/babel-plugin-syntax-trailing-function-commas-7.0.0-beta.0.tgz"
   "version" "7.0.0-beta.0"
 
+"babel-plugin-transform-inline-environment-variables@^0.4.3":
+  "integrity" "sha1-o7CYgzU76LXiM24/8e+KXZP5xIk="
+  "resolved" "https://registry.npmjs.org/babel-plugin-transform-inline-environment-variables/-/babel-plugin-transform-inline-environment-variables-0.4.3.tgz"
+  "version" "0.4.3"
+
 "babel-preset-current-node-syntax@^1.0.0":
   "integrity" "sha512-M7LQ0bxarkxQoN+vz5aJPsLBn77n8QgTFmo8WK0/44auK2xlCXrYcUxHFxgU7qW5Yzw/CjmLRK2uJzaCd7LvqQ=="
   "resolved" "https://registry.npmjs.org/babel-preset-current-node-syntax/-/babel-preset-current-node-syntax-1.0.1.tgz"
@@ -3475,6 +3480,11 @@
   "version" "2.0.1"
   dependencies:
     "webidl-conversions" "^5.0.0"
+
+"dotenv@^10.0.0":
+  "integrity" "sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q=="
+  "resolved" "https://registry.npmjs.org/dotenv/-/dotenv-10.0.0.tgz"
+  "version" "10.0.0"
 
 "ecc-jsbn@~0.1.1":
   "integrity" "sha1-OoOpBOVDUyh4dMVkt1SThoSamMk="
@@ -7406,6 +7416,13 @@
     "pbkdf2" "3.0.8"
     "public-encrypt" "^4.0.0"
     "randomfill" "^1.0.3"
+
+"react-native-dotenv@^3.3.1":
+  "integrity" "sha512-gAKXout1XCwCqJ3QPGoQAF2eRzOHgOnwg3x19z+ssow8bDIksJeKBqvoHDyGziVilAIP1J0bEC9Jf+VF8nFang=="
+  "resolved" "https://registry.npmjs.org/react-native-dotenv/-/react-native-dotenv-3.3.1.tgz"
+  "version" "3.3.1"
+  dependencies:
+    "dotenv" "^10.0.0"
 
 "react-native-level-fs@^3.0.1":
   "integrity" "sha1-8wVGFMK8Gjedyz0+5RtqG2YSMoM="

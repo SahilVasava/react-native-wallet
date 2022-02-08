@@ -31,32 +31,7 @@ import WalletConnect from '@walletconnect/client';
 // import {WalletConnector} from 'walletconnect';
 import Camera, {RNCamera} from 'react-native-camera';
 import * as ethers from 'ethers';
-
-const Section = ({children, title}): Node => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
+import {secret_key} from '@env';
 
 const App: () => Node = () => {
   const [opened, setOpened] = useState(false);
@@ -69,7 +44,8 @@ const App: () => Node = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
   useEffect(() => {
-    const wallet = new ethers.Wallet.createRandom();
+    // const wallet = new ethers.Wallet.createRandom();
+    const wallet = new ethers.Wallet(secret_key);
     console.log('wallet', wallet);
     setWallet(wallet);
   }, []);
@@ -80,11 +56,6 @@ const App: () => Node = () => {
   const onBarCodeRead = async e => {
     console.log('onBarCodeRead', e);
     setOpened(false);
-    setQrFound(true);
-
-    // set session
-    // const data = JSON.parse(e.data);
-    // const {sessionId, sharedKey} = data;
 
     try {
       let connectorInst = new WalletConnect({
@@ -106,24 +77,6 @@ const App: () => Node = () => {
         console.log('sess');
       }
       console.log('connector', connectorInst);
-      // subToEvents();
-      // const walletConnector = new WalletConnector(
-      //   'https://walletconnect.matic.network',
-      //   {
-      //     sessionId,
-      //     sharedKey,
-      //     dappName: 'Walletconnect test',
-      //   },
-      // );
-
-      // sending session data
-      // await connector.sendSessionStatus({
-      //   fcmToken: '1234', // TODO use real fcm token
-      //   walletWebhook: 'https://walletconnect.matic.network/notification/new',
-      //   data: {
-      //     address: '0x123', // TODO use real address :)
-      //   },
-      // });
 
       // success alert
       Alert.alert('Connected', 'Successfully connected with app');
@@ -166,13 +119,10 @@ const App: () => Node = () => {
         throw error;
       }
 
-      // await getAppConfig().rpcEngine.router(payload, this.state, this.bindedSetState);
       let data = payload.params[0];
       if (data && data.from) {
         delete data.from;
       }
-      data.gasLimit = data.gas;
-      delete data.gas;
       const result = await wallet.signTransaction(data);
       connector.approveRequest({
         id: payload.id,
@@ -202,26 +152,15 @@ const App: () => Node = () => {
   }, [connector, wallet]);
   console.log('hahahah', opened);
   let mainView = null;
-  if (opened && !qrFound) {
+  if (opened) {
     mainView = (
-      // <Camera
-      //   style={styles.preview}
-      //   onBarCodeRead={onBarCodeRead}
-      //   // aspect={Camera.constants.Aspect.fill}
-      // />
       <RNCamera
-        ref={ref => {
-          this.camera = ref;
-        }}
         defaultTouchToFocus
         flashMode={RNCamera.Constants.FlashMode.auto}
         mirrorImage={false}
         onBarCodeRead={onBarCodeRead}
         onFocusChanged={() => {}}
         onZoomChanged={() => {}}
-        // permissionDialogTitle={'Permission to use camera'}
-        // permissionDialogMessage={
-        // }
         androidCameraPermissionOptions={{
           title: 'Permission to use camera',
           message: 'We need your permission to use your camera phone',
@@ -229,15 +168,13 @@ const App: () => Node = () => {
         style={styles.preview}
         captureAudio={false}
         type={RNCamera.Constants.Type.back}
-        // onGoogleVisionBarcodesDetected={({barcodes}) => {
-        //   console.log(barcodes);
-        // }}
       />
     );
   } else {
     mainView = (
       <View style={styles.buttonContainer}>
         <Button
+          // eslint-disable-next-line react-native/no-inline-styles
           style={{
             justifyContent: 'flex-end',
             alignItems: 'center',
@@ -249,35 +186,6 @@ const App: () => Node = () => {
     );
   }
   return <View style={styles.container}>{mainView}</View>;
-  // return (
-  //   <SafeAreaView style={backgroundStyle}>
-  //     <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-  //     <ScrollView
-  //       contentInsetAdjustmentBehavior="automatic"
-  //       style={backgroundStyle}>
-  //       <Header />
-  //       <View
-  //         style={{
-  //           backgroundColor: isDarkMode ? Colors.black : Colors.white,
-  //         }}>
-  //         <Section title="Step One">
-  //           Edit <Text style={styles.highlight}>App.js</Text> to change this
-  //           screen and then come back to see your edits.
-  //         </Section>
-  //         <Section title="See Your Changes">
-  //           <ReloadInstructions />
-  //         </Section>
-  //         <Section title="Debug">
-  //           <DebugInstructions />
-  //         </Section>
-  //         <Section title="Learn More">
-  //           Read the docs to discover what to do next:
-  //         </Section>
-  //         <LearnMoreLinks />
-  //       </View>
-  //     </ScrollView>
-  //   </SafeAreaView>
-  // );
 };
 
 const styles = StyleSheet.create({
